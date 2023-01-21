@@ -26,6 +26,8 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
+import io.opentelemetry.api.trace.Span;
+
 /**
  * @author Juergen Hoeller
  * @author Mark Fisher
@@ -48,6 +50,10 @@ class VetController {
 		Vets vets = new Vets();
 		Page<Vet> paginated = findPaginated(page);
 		vets.getVetList().addAll(paginated.toList());
+		
+		Span currentSpan = Span.current();
+		currentSpan .setAttribute("custom.veterans.count", vets.getVetList().size());
+		
 		return addPaginationModel(page, paginated, model);
 
 	}
@@ -58,6 +64,7 @@ class VetController {
 		model.addAttribute("totalPages", paginated.getTotalPages());
 		model.addAttribute("totalItems", paginated.getTotalElements());
 		model.addAttribute("listVets", listVets);
+		
 		return "vets/vetList";
 	}
 
@@ -73,6 +80,10 @@ class VetController {
 		// objects so it is simpler for JSon/Object mapping
 		Vets vets = new Vets();
 		vets.getVetList().addAll(this.vetRepository.findAll());
+		
+		Span currentSpan = Span.current();
+		currentSpan .setAttribute("custom.veterans.count", vets.getVetList().size());
+		
 		return vets;
 	}
 

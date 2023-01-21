@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.samples.petclinic.owner;
 
 import java.util.List;
@@ -34,6 +35,8 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.ModelAndView;
 
 import jakarta.validation.Valid;
+
+import io.opentelemetry.api.trace.Span;
 
 /**
  * @author Juergen Hoeller
@@ -155,6 +158,15 @@ class OwnerController {
 	public ModelAndView showOwner(@PathVariable("ownerId") int ownerId) {
 		ModelAndView mav = new ModelAndView("owners/ownerDetails");
 		Owner owner = this.owners.findById(ownerId);
+
+		Span currentSpan = Span.current();
+		currentSpan .setAttribute("custom.owner.id", owner.getId());
+		currentSpan .setAttribute("custom.owner.name", String.join(" ", owner.getFirstName(), owner.getLastName()));
+		currentSpan .setAttribute("custom.owner.city", owner.getCity());
+		currentSpan .setAttribute("custom.owner.phone", owner.getTelephone());
+		
+		currentSpan.addEvent(String.format("custom event at petclinic: an owner %s's record was viewed", owner.getFirstName()));
+		
 		mav.addObject(owner);
 		return mav;
 	}
